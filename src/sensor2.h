@@ -23,21 +23,67 @@ void imu_connect() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define RXP 19
-#define TXP 18
-bool setup_GPS() {
-  unsigned long gps_up = millis();
-  while (!Serial2.available())
+void gps_timestamp() {
+  gps_data = "Date: ";
+  gps_data = gps_data + "20" + String(GPS.year, DEC) + '/';
+  gps_data = gps_data + String(GPS.month, DEC) + '/';
+  gps_data = gps_data + String(GPS.day, DEC);
+  gps_data = gps_data + "\nTime: ";
+
+  // gps_data = "Time: ";
+  if (GPS.hour < 10) { gps_data = gps_data + '0'; }
+  gps_data = gps_data + String(GPS.hour, DEC) + ':';
+  if (GPS.minute < 10) { gps_data = gps_data + '0'; }
+  gps_data = gps_data + String(GPS.minute, DEC) + ':';
+  if (GPS.seconds < 10) { gps_data = gps_data + '0'; }
+  gps_data = gps_data + String(GPS.seconds, DEC) + '.';
+  if (GPS.milliseconds < 10)
+     gps_data = gps_data + "00";
+  else if (GPS.milliseconds > 9 && GPS.milliseconds < 100)
+     gps_data = gps_data + "0";
+  gps_data = gps_data + String(GPS.milliseconds);  
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int setup_GPS() {
+  //  return  condition
+  //  0       all ok
+  //  1       not ok
+  //  2       no fix
+
+  unsigned long gps_up = millis();      
+  while(!GPS.begin(9600))
     if (millis() - gps_up > 5000)
       return 1;
-      
-  Serial2.begin(9600, SERIAL_8N1, RXP, TXP);
-  delay(50);
-//  Serial2.println("$PMTK251,38400*27<CR><LF>");   // higher baud rate
-//  Serial2.begin(38400, SERIAL_8N1, RXP, TXP);
-//  delay(200);
-  Serial2.println("$PMTK220,250*29<CR><LF>");     // 4Hz   http://www.hhhh.org/wiml/proj/nmeaxor.html
 
+  // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  
+setup_start:
+  gps_up = millis();
+  GPS.fix = 0;
+  while(!GPS.fix){
+    // check for timeout
+    if (millis() - gps_up > 5000){
+      Serial.println(GPS.satellites);
+      return 2;
+    }
+    // try to read and parse GPS data until fixed
+    GPS.read();
+    if (GPS.newNMEAreceived())
+      GPS.parse(GPS.lastNMEA());
+  }
+  // increase baud rate, TOCHECK
+  // GPS.sendCommand(PMTK_SET_BAUD_57600);
+  // GPS.begin(57600);
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);
+
+  // if fix is found
+  if(GPS.year == 0)
+    goto setup_start;
+  gps_timestamp();
   return 0;
 }
 
@@ -47,23 +93,26 @@ bool setup_GPS() {
 bool clear_gps = 0;
 unsigned long tm = 0;
 bool get_GPS() {
-  // clear gps if read the last time
-  if (clear_gps) {
-    gps_data = "";
-    clear_gps  = 0;
+  GPS.read();
+
+  if (GPS.newNMEAreceived()) {
+    if (!GPS.parse(GPS.lastNMEA()))
+      return 0; 
+    else {
+      gps_data = "GPS:"; // filter based on this
+      if (GPS.fix) {
+        gps_data = gps_data + String(GPS.latitude, 4) + String(GPS.lat) + ',';
+        gps_data = gps_data + String(GPS.longitude, 4) + String(GPS.lon) + ',';
+        gps_data = gps_data + String(GPS.altitude, 4) + ',';
+        gps_data = gps_data + String(GPS.speed) + ',';        
+        gps_data = gps_data + String(GPS.angle) + ',';  // knots
+        gps_data = gps_data + String(GPS.satellites) + '\n';
+        // Serial.println(gps_data);
+        return 1;
+      }
+    }
   }
-  // collect all data
-  while (Serial2.available()) {
-    gps_data = gps_data + String(char(Serial2.read()));
-    tm = millis();
-  }
-  // if all data from gps for this cycle collected, flag to be saved to SD
-  if (millis() - tm > 2 and !gps_data.equals("\n")) {
-    clear_gps = 1;
-    tm = millis();
-    return 1;
-  }
-  return 0;
+  return 0; 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,21 +122,29 @@ void gps_test() {
 y:
   tft.setTextDatum(TL_DATUM); // Set datum to bottom centre
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  String str = "GPS:";
+  String str = "GPS: ";
   tft.drawString(str, 4, 28);
-  delay(100);
-  if (setup_GPS() == 0) {
+  Serial.print(str);
+  
+  int gps_state = setup_GPS();
+  if (gps_state == 0) {
     str = "GPS: OK";
+    Serial.println("OK");
     tft.drawString(str, 4, 28);
+  }
+  else if (gps_state == 2) {
+    tft.setTextColor(TFT_PURPLE, TFT_BLACK);
+    str = "GPS: NO FIX";
+    tft.drawString(str, 4, 28);
+    Serial.println("NO FIX");
+    goto y;
   }
   else {
     tft.setTextColor(TFT_RED, TFT_BLACK);
     str = "GPS: NOT OK";
-    //    tft.setTextColor(TFT_PURPLE, TFT_BLACK);
-    //    str = "GPS: TODO";
     tft.drawString(str, 4, 28);
-    Serial.println("GPS error");
-    delay(1000);
+    Serial.println("NOT OK");
+    delay(500);
     goto y;
   }
 }

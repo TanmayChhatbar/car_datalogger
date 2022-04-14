@@ -17,6 +17,12 @@ uint8_t g_btns[] =  BUTTONS_MAP;
 char buff[512];
 Ticker btnscanT;
 
+#define GPSSerial Serial2
+Adafruit_GPS GPS(&GPSSerial);
+#define GPSECHO false
+
+String gps_data = "";
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +47,8 @@ void pindump() {
     Serial.printf("BUTTON_1:%d\n", BUTTON_1);
     Serial.printf("BUTTON_2:%d\n", BUTTON_2);
     Serial.printf("BUTTON_3:%d\n", BUTTON_3);
+    Serial.printf("GPS TX:%d\n", TX2);
+    Serial.printf("GPS RX:%d\n", RX2);
 #ifdef BUTTON_4
     Serial.printf("BUTTON_4:%d\n", BUTTON_4);
 #endif

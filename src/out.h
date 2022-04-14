@@ -29,7 +29,6 @@ void disp(String msg, int col, int locx, int locy) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned long timer = 0;
-String gps_data = "";
 void write2SD(File file, bool has_GPS) {
   String dl = ",";
   String tp = String((float)(millis() - timer) / 1000.0, 3);
@@ -46,15 +45,26 @@ void write2SD(File file, bool has_GPS) {
 
 int filenum = 1;
 File new_file_open() {
+  // create new file
   String filename = "/" + String(filenum) + ".txt";
   while (SD.exists(filename)) {
     filenum++;
     filename = "/" + String(filenum) + ".txt";
   }
 
+  // open file
   File f = SD.open(filename, FILE_WRITE);
+  
+  // populate it with headers
+  gps_timestamp();
   if (f) {
-    f.println("time,ax,ay,az,gx,gy,gz,mx,my,mz");
+    // time of log start
+    Serial.println(gps_data);
+    f.println(gps_data);
+    
+    // format for data
+    f.println(F("latitude(2)°latitude(2.4)dir,longitude(2)°longitude(2.4)dir,alt,speed,angle,sat"));
+    f.println(F("time,ax,ay,az,gx,gy,gz,mx,my,mz"));
   }
   return f;
 }

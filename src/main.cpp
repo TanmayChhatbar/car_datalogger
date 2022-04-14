@@ -1,19 +1,21 @@
 #include <Arduino.h>
 #include "T10_V20.h"
-#include <TFT_eSPI.h>
 #include <SPI.h>
-#include "WiFi.h"
+#include <TFT_eSPI.h>
 #include <Wire.h>
 #include <Ticker.h>
 #include <Button2.h>
 #include <SD.h>
+#include <Adafruit_GPS.h>
+// #include "WiFi.h"
+
+// #include "fcn_wifi.h"
 #include "definitions.h"
 #include "fcn_buzzer.h"
+#include "sensor2.h"
 #include "out.h"
 #include "fcn_SD.h"
 #include "buttons.h"
-#include "fcn_wifi.h"
-#include "sensor2.h"
 
 /*
   TOCHECK
@@ -29,24 +31,31 @@
     rtOS
 
     GPS - https://airu.coe.utah.edu/wp-content/uploads/sites/62/2017/09/adafruit-ultimate-gps.pdf
-      what data is received
       connection stats on screen
       battery advantages
-      timestamp from GPS
     
     IMU
       max refresh rate
 
     Design
-      mount in car
       soft edges
       LCD cut in cap
+    
+    Screen
+      backlight
+    
+    WiFi
+      autobackup
+    
+    Tidy serial output
 
   data processing
   https://www.youtube.com/watch?v=hJG08iWlres
   https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
   https://www.mathworks.com/help/fusion/ref/insfilterasync.html
 */
+
+// #define startup_rec 1
 
 bool record = 1;
 File file;
@@ -55,10 +64,9 @@ File file;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
-  const String vs = "v2.6";
+  const String vs = "v2.7";
   
   Serial.begin(115200);
-  Serial2.begin(9600, SERIAL_8N1, RXP, TXP);
   delay(50);
 
   pindump();                      // Pin out Dump
@@ -73,7 +81,11 @@ void setup() {
   gps_test();
   btnscanT.attach_ms(30, button_loop);
 
+#ifdef startup_rec
   record = 0;
+#else
+  record = 1;
+#endif
   state = 1;
   buttonmarkers(record);
   tft.setTextSize(2);
@@ -99,8 +111,8 @@ void loop() {
       state = 0;
       record = 0;
       file.close();
-      disp("Recording", TFT_WHITE, 4, tft.height() / 2);
-      disp("paused", TFT_WHITE, 4, tft.height() / 2 + 24);
+      disp("Logging", TFT_WHITE, 4, tft.height() / 2);
+      disp("Paused", TFT_WHITE, 4, tft.height() / 2 + 24);
       buttonmarkers(record);
       tft.fillRect(146, 2, 15, 15, TFT_BLACK);
       tft.setTextColor(TFT_BLACK, TFT_BLACK);
@@ -113,7 +125,7 @@ void loop() {
     state = 0;
     record = 1;
     file = new_file_open();          // get filenum
-    String dsp = "Recording";
+    String dsp = "Logging";
     disp(dsp, TFT_GREEN, 4, tft.height() / 2);
     dsp = "-> " + String(filenum) + ".txt";
     disp(dsp, TFT_GREEN, 4, tft.height() / 2 + 24);
