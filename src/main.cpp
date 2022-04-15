@@ -1,3 +1,4 @@
+// Standard libraries
 #include <Arduino.h>
 #include "T10_V20.h"
 #include <SPI.h>
@@ -9,6 +10,11 @@
 #include <Adafruit_GPS.h>
 // #include "WiFi.h"
 
+// Helper file settings
+// #define STARTUP_REC // uncomment to start recording on startup by default
+#define LOG_SERIAL_ONLY // comment to log to SD
+
+// Helper files
 // #include "fcn_wifi.h"
 #include "definitions.h"
 #include "fcn_buzzer.h"
@@ -49,13 +55,12 @@
     
     Tidy serial output
 
+
   data processing
   https://www.youtube.com/watch?v=hJG08iWlres
   https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
   https://www.mathworks.com/help/fusion/ref/insfilterasync.html
 */
-
-// #define startup_rec 1
 
 bool record = 1;
 File file;
@@ -71,7 +76,7 @@ void setup() {
 
   pindump();                      // Pin out Dump
   tft_init();                     //
-  disp(vs, TFT_GREEN, 134, 119);
+  disp(vs, TFT_GREEN, 134, 119, 1);
   spisd_test();                   // check if sd card connected and working
   buzzer_test();                  // buzzer test, but doesnt do anything
   button_init();
@@ -81,25 +86,46 @@ void setup() {
   gps_test();
   btnscanT.attach_ms(30, button_loop);
 
-#ifdef startup_rec
+#ifdef STARTUP_REC
   record = 0;
 #else
   record = 1;
 #endif
   state = 1;
+
   buttonmarkers(record);
-  tft.setTextSize(2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned long last_save = 0;
+bool lastfix = 0;
 void loop() {
+  // backlit control
+  //TODO
+  
+  // update GPS status on screen
+  if (!GPS.fix and lastfix == 1){  
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_PURPLE, TFT_BLACK);
+    tft.drawString("GPS: NO FIX", 4, 28);
+    Serial.println("NO FIX");
+    lastfix = 0;
+  }
+  else if (GPS.fix and lastfix == 0) {
+    tft.setTextSize(1);
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    Serial.println("OK");
+    tft.drawString("GPS: OK", 4, 28);
+    lastfix = 1;
+  }
+
   // if in recording mode
   if (record == 1) {
     readMPU9250();
-    write2SD(file, get_GPS());
+    data_out(file, get_GPS());
+
     if (millis() - last_save > 3000) {
       last_save = millis();
       file.flush();
@@ -109,10 +135,11 @@ void loop() {
     // if need to stop recording
     if (state == 1) {
       state = 0;
+      tft.setTextSize(2);
       record = 0;
       file.close();
-      disp("Logging", TFT_WHITE, 4, tft.height() / 2);
-      disp("Paused", TFT_WHITE, 4, tft.height() / 2 + 24);
+      disp("Logging", TFT_WHITE, 4, tft.height() / 2, 0);
+      disp("Paused", TFT_WHITE, 4, tft.height() / 2 + 24, 1);
       buttonmarkers(record);
       tft.fillRect(146, 2, 15, 15, TFT_BLACK);
       tft.setTextColor(TFT_BLACK, TFT_BLACK);
@@ -123,12 +150,17 @@ void loop() {
   // if not recording, but need to start recording
   else if (state == 1) {
     state = 0;
+    tft.setTextSize(2);
     record = 1;
     file = new_file_open();          // get filenum
     String dsp = "Logging";
-    disp(dsp, TFT_GREEN, 4, tft.height() / 2);
+    disp(dsp, TFT_GREEN, 4, tft.height() / 2, 0);
+#ifndef LOG_SERIAL_ONLY
     dsp = "-> " + String(filenum) + ".txt";
-    disp(dsp, TFT_GREEN, 4, tft.height() / 2 + 24);
+#else
+    dsp = "to Serial";
+#endif
+    disp(dsp, TFT_GREEN, 4, tft.height() / 2 + 24, 1);
     buttonmarkers(record);
     timer = millis();
   }

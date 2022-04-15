@@ -1,4 +1,9 @@
 void button_handle(uint8_t gpio) {
+  // with GPS side as top
+  // top - 3
+  // mid - 2
+  // bot - 1
+
   switch (gpio) {
 #ifdef BUTTON_1
     case BUTTON_1: {
@@ -38,8 +43,9 @@ void button_handle(uint8_t gpio) {
 void button_callback(Button2 &b) {
   for (int i = 0; i < sizeof(g_btns) / sizeof(g_btns[0]); ++i) {
     if (pBtns[i] == b) {
-      Serial.printf("btn: %u press\n", pBtns[i].getAttachPin());
+      // Serial.printf("btn: %u press\n", pBtns[i].getAttachPin());
       button_handle(pBtns[i].getAttachPin());
+      // Serial.println(state);
     }
   }
 }

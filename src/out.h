@@ -16,8 +16,13 @@ void tft_init() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void disp(String msg, int col, int locx, int locy) {
-  Serial.println(msg);
+void disp(String msg, int col, int locx, int locy, bool nextline) {
+  if (nextline)
+    Serial.println(msg);
+  else {
+    Serial.print(msg);
+    Serial.print(' ');
+  }
   tft.setTextDatum(TL_DATUM); // Set datum to bottom centre
   tft.setTextColor(col, TFT_BLACK);
   tft.fillRect(locx, locy, 120, 20, TFT_BLACK);
@@ -29,7 +34,7 @@ void disp(String msg, int col, int locx, int locy) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 unsigned long timer = 0;
-void write2SD(File file, bool has_GPS) {
+void data_out(File file, bool has_GPS) {
   String dl = ",";
   String tp = String((float)(millis() - timer) / 1000.0, 3);
   //  Serial.println(tp);
@@ -37,7 +42,11 @@ void write2SD(File file, bool has_GPS) {
                dl + String(IMU.gy) + dl + String(IMU.gz) + dl + String(IMU.mx) + dl + String(IMU.my) + dl + String(IMU.mz) + "\n";
   if (has_GPS)
     buf = buf + gps_data;  
+#ifdef LOG_SERIAL_ONLY
+  Serial.print(buf);
+#else
   file.print(buf);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,6 +54,7 @@ void write2SD(File file, bool has_GPS) {
 
 int filenum = 1;
 File new_file_open() {
+#ifndef LOG_SERIAL_ONLY
   // create new file
   String filename = "/" + String(filenum) + ".txt";
   while (SD.exists(filename)) {
@@ -54,19 +64,27 @@ File new_file_open() {
 
   // open file
   File f = SD.open(filename, FILE_WRITE);
-  
+#endif
+
   // populate it with headers
   gps_timestamp();
-  if (f) {
     // time of log start
-    Serial.println(gps_data);
-    f.println(gps_data);
-    
     // format for data
+#ifndef LOG_SERIAL_ONLY
+  if (f) {
+    f.println(gps_data);
     f.println(F("latitude(2)°latitude(2.4)dir,longitude(2)°longitude(2.4)dir,alt,speed,angle,sat"));
     f.println(F("time,ax,ay,az,gx,gy,gz,mx,my,mz"));
   }
   return f;
+#else
+  Serial.println(gps_data);
+  Serial.println(F("latitude(2)°latitude(2.4)dir,longitude(2)°longitude(2.4)dir,alt,speed,angle,sat"));
+  Serial.println(F("time,ax,ay,az,gx,gy,gz,mx,my,mz"));
+  File f;
+  return f;
+#endif
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
