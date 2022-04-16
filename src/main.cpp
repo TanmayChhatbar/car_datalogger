@@ -8,20 +8,20 @@
 #include <Button2.h>
 #include <SD.h>
 #include <Adafruit_GPS.h>
-// #include "WiFi.h"
 
 // Helper file settings
+// #define PIN_DUMP  // dump all pins used
 // #define STARTUP_REC // uncomment to start recording on startup by default
 #define LOG_SERIAL_ONLY // comment to log to SD
 
 // Helper files
-// #include "fcn_wifi.h"
 #include "definitions.h"
 #include "fcn_buzzer.h"
-#include "sensor2.h"
-#include "out.h"
+#include "fcn_imu.h"
+#include "fcn_gps.h"
+#include "fcn_tft.h"
 #include "fcn_SD.h"
-#include "buttons.h"
+#include "fcn_buttons.h"
 
 /*
   TOCHECK
@@ -35,6 +35,7 @@
     make imu and GPS sensing interrupt based
     
     rtOS
+      standardise refresh rate
 
     GPS - https://airu.coe.utah.edu/wp-content/uploads/sites/62/2017/09/adafruit-ultimate-gps.pdf
       connection stats on screen
@@ -73,8 +74,9 @@ void setup() {
   
   Serial.begin(115200);
   delay(50);
-
+#ifdef PIN_DUMP
   pindump();                      // Pin out Dump
+#endif
   tft_init();                     //
   disp(vs, TFT_GREEN, 134, 119, 1);
   spisd_test();                   // check if sd card connected and working
@@ -162,6 +164,6 @@ void loop() {
 #endif
     disp(dsp, TFT_GREEN, 4, tft.height() / 2 + 24, 1);
     buttonmarkers(record);
-    timer = millis();
+    timer_stamp = millis();
   }
 }

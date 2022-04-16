@@ -53,3 +53,7 @@ void pindump() {
     Serial.printf("BUTTON_4:%d\n", BUTTON_4);
 #endif
 }
+
+//SD
+unsigned long timer_stamp = 0;
+int filenum = 1;

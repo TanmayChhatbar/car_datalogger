@@ -1,42 +1,35 @@
-void tft_init() {
-  tft.init();
-  tft.setRotation(1);
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextSize(1);
-  tft.setTextFont(1);
-  tft.setTextColor(TFT_WHITE);
-  tft.setCursor(0, 0);
+void spisd_test() {
+#ifdef LOG_SERIAL_ONLY
+  String str = "SD Card: Serial only";
+  disp(str, TFT_GREEN, 4, 4, 1);
 
-  if (TFT_BL > 0) {
-    pinMode(TFT_BL, OUTPUT);
-    digitalWrite(TFT_BL, HIGH);
+#else
+x:
+  disp("SD Card: ", TFT_GREEN, 4, 4, 0);
+  
+  if (SD_CS >  0) {
+    sdSPI.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
+    if (!SD.begin(SD_CS, sdSPI)) {
+      disp("SD Card: Mount fail", TFT_RED, 4, 4, 1);
+      delay(2000);
+      goto x;
+    }
+    else {
+      uint32_t cardSize = SD.cardSize() / (1024 * 1024);
+      String str = "SD Card: " + String(cardSize) + "MB";
+      disp(str, TFT_GREEN, 4, 4, 1);
+    }
+    delay(50);
   }
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void disp(String msg, int col, int locx, int locy, bool nextline) {
-  if (nextline)
-    Serial.println(msg);
-  else {
-    Serial.print(msg);
-    Serial.print(' ');
-  }
-  tft.setTextDatum(TL_DATUM); // Set datum to bottom centre
-  tft.setTextColor(col, TFT_BLACK);
-  tft.fillRect(locx, locy, 120, 20, TFT_BLACK);
-  tft.drawString(msg, locx, locy);
-  playSound();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-unsigned long timer = 0;
 void data_out(File file, bool has_GPS) {
   String dl = ",";
-  String tp = String((float)(millis() - timer) / 1000.0, 3);
+  String tp = String((float)(millis() - timer_stamp) / 1000.0, 3);
   //  Serial.println(tp);
   String buf = tp + dl + String(IMU.ax) + dl + String(IMU.ay) + dl + String(IMU.az) + dl + String(IMU.gx) + \
                dl + String(IMU.gy) + dl + String(IMU.gz) + dl + String(IMU.mx) + dl + String(IMU.my) + dl + String(IMU.mz) + "\n";
@@ -52,7 +45,6 @@ void data_out(File file, bool has_GPS) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int filenum = 1;
 File new_file_open() {
 #ifndef LOG_SERIAL_ONLY
   // create new file
@@ -85,33 +77,4 @@ File new_file_open() {
   return f;
 #endif
 
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-unsigned long scr_del = 0, scr_up = 0;
-bool up = 0;
-void is_recording() {
-#define dx 146
-#define dy 2
-  scr_del = millis() - scr_up;
-  if (scr_del < 1000) {
-    if (up == 1) {
-      up = 0;
-      tft.setTextColor(TFT_BLACK, TFT_BLACK);
-      tft.drawString("o", dx, dy);
-      tft.fillRect(dx + 2, dy + 6, 6, 6, TFT_BLACK);
-    }
-  }
-  else {
-    if (up == 0) {
-      tft.setTextColor(TFT_RED, TFT_BLACK);
-      tft.drawString("o", dx, dy);
-      tft.fillRect(dx + 2, dy + 6, 6, 6, TFT_RED);
-      up = 1;
-    }
-    if (scr_del > 2000)
-      scr_up = millis();
-  }
 }
