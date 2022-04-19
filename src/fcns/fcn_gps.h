@@ -1,6 +1,3 @@
-bool clear_gps = 0;
-unsigned long tm = 0;
-
 void gps_timestamp() {
   gps_data = "Date: ";
   gps_data = gps_data + "20" + String(GPS.year, DEC) + '/';
@@ -69,30 +66,23 @@ setup_start:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void gps_test() {
-y:
-  tft.setTextDatum(TL_DATUM); // Set datum to bottom centre
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
   String str = "GPS: ";
-  tft.drawString(str, 4, 28);
-  Serial.print(str);
-  
+  disp(str, TXT_POSITIVE, 4, 28, 1);
+y:  
   int gps_state = setup_GPS();
-  if (gps_state == 0) {
+  if (gps_state == 0 or gps_state == 2) {
     str = "GPS: OK";
-    Serial.println("OK");
-    tft.drawString(str, 4, 28);
+    disp(str, TXT_POSITIVE, 4, 28, 1);
   }
   else if (gps_state == 2) {
-    tft.setTextColor(TFT_PURPLE, TFT_BLACK);
     str = "GPS: NO FIX";
-    tft.drawString(str, 4, 28);
+    disp(str, TXT_NEUTRAL, 4, 28, 1);
     Serial.println("NO FIX");
     goto y;
   }
   else {
-    tft.setTextColor(TFT_RED, TFT_BLACK);
     str = "GPS: NOT OK";
-    tft.drawString(str, 4, 28);
+    disp(str, TXT_NEGATIVE, 4, 28, 1);
     Serial.println("NOT OK");
     delay(500);
     goto y;

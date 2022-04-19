@@ -1,8 +1,10 @@
+// with GPS side as top
+// pos - state
+// top - 3
+// mid - 2
+// bot - 1
+
 void button_handle(uint8_t gpio) {
-  // with GPS side as top
-  // top - 3
-  // mid - 2
-  // bot - 1
 
   switch (gpio) {
 #ifdef BUTTON_1
@@ -97,30 +99,4 @@ void button_loop() {
   for (int i = 0; i < sizeof(g_btns) / sizeof(g_btns[0]); ++i) {
     pBtns[i].loop();
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void buttonmarkers(bool record) {
-  // size of the markers
-#define xh 5
-#define xh2 3
-#define yh 3
-  int xp, yp;   // location
-
-  // play/pause button
-  xp = 150, yp = 108;
-  tft.fillRect(xp - xh, yp - yh, xh + 2, 2 * yh + 2, TFT_BLACK);            // clear space
-  
-  if (record == 0) {
-    tft.fillTriangle(xp, yp, xp - xh, yp - yh, xp - xh, yp + yh, TFT_GREEN);    // play button
-  }
-  else {
-    tft.drawLine(xp - xh,       yp - yh, xp - xh,       yp + yh, TFT_GREEN);    // pause button
-    tft.drawLine(xp - xh + xh2, yp - yh, xp - xh + xh2, yp + yh, TFT_GREEN);
-  }
-  xp = 160, yp = 108; tft.fillTriangle(xp, yp, xp - xh, yp - yh, xp - xh, yp + yh, TFT_WHITE);  // button markers
-  xp = 160, yp = 72;  tft.fillTriangle(xp, yp, xp - xh, yp - yh, xp - xh, yp + yh, TFT_WHITE);  // button markers
-  xp = 160, yp = 36;  tft.fillTriangle(xp, yp, xp - xh, yp - yh, xp - xh, yp + yh, TFT_WHITE);  // button markers
 }

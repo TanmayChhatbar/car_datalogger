@@ -1,27 +1,39 @@
-
+// TFT
 TFT_eSPI tft = TFT_eSPI(); // Invoke custom library
+unsigned long scr_del = 0, scr_up = 0;
+bool up = 0;
 
+// IMU
 #ifdef ENABLE_MPU9250
 #include "sensor.h"
 extern MPU9250 IMU;
 #endif
 
+// SD
 SPIClass sdSPI(VSPI);
 #define IP5306_ADDR         0X75
 #define IP5306_REG_SYS_CTL0 0x00
+unsigned long timer_stamp = 0;
+int filenum = 1;
+unsigned long last_save = 0;
+bool record = 1;
+File file;
 
-
+// buttons
 uint8_t state = 0;
 Button2 *pBtns = nullptr;
 uint8_t g_btns[] =  BUTTONS_MAP;
 char buff[512];
 Ticker btnscanT;
 
+// GPS
 #define GPSSerial Serial2
 Adafruit_GPS GPS(&GPSSerial);
 #define GPSECHO false
-
 String gps_data = "";
+bool clear_gps = 0;
+unsigned long tm = 0;
+bool lastfix = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +65,3 @@ void pindump() {
     Serial.printf("BUTTON_4:%d\n", BUTTON_4);
 #endif
 }
-
-//SD
-unsigned long timer_stamp = 0;
-int filenum = 1;

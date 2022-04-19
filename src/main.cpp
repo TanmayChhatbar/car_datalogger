@@ -10,16 +10,18 @@
 #include <Adafruit_GPS.h>
 
 // Helper file settings
-// #define PIN_DUMP  // dump all pins used
-// #define STARTUP_REC // uncomment to start recording on startup by default
-#define LOG_SERIAL_ONLY // comment to log to SD
+// #define PIN_DUMP         // dump all pins used at setup
+// #define STARTUP_REC      // uncomment to start recording on startup by default
+#define LOG_SERIAL_ONLY  // comment to log to SD
+// #define LIGHTMODE        // switch to light UI
+#define ENABLE_SS           // top button for screenshot to serial
 
 // Helper files
 #include "definitions.h"
 #include "fcn_buzzer.h"
+#include "fcn_tft.h"
 #include "fcn_imu.h"
 #include "fcn_gps.h"
-#include "fcn_tft.h"
 #include "fcn_SD.h"
 #include "fcn_buttons.h"
 
@@ -28,6 +30,10 @@
   file.flush() - fix potential data loss if power cut, effects on write speed
 
   TODO
+    animation
+      screenshot for the animation
+      textures
+      
     SDFat library - file.sync() to preserve recent changes, like flush for sd library - FIGURE OUT HOW TO CHANGE SPI PINS
       https://forum.arduino.cc/t/sdfat-when-to-call-sync/272019
       https://forum.arduino.cc/t/explanation-of-sd-write-and-flush-please/369320/5
@@ -46,16 +52,9 @@
 
     Design
       soft edges
-      LCD cut in cap
-    
-    Screen
-      backlight
     
     WiFi
       autobackup
-    
-    Tidy serial output
-
 
   data processing
   https://www.youtube.com/watch?v=hJG08iWlres
@@ -63,14 +62,11 @@
   https://www.mathworks.com/help/fusion/ref/insfilterasync.html
 */
 
-bool record = 1;
-File file;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
-  const String vs = "v2.7";
+  const String vs = "v2.8";
   
   Serial.begin(115200);
   delay(50);
@@ -78,7 +74,7 @@ void setup() {
   pindump();                      // Pin out Dump
 #endif
   tft_init();                     //
-  disp(vs, TFT_GREEN, 134, 119, 1);
+  disp(vs, TXT_SECONDARY, 134, 119, 1);
   spisd_test();                   // check if sd card connected and working
   buzzer_test();                  // buzzer test, but doesnt do anything
   button_init();
@@ -101,27 +97,23 @@ void setup() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned long last_save = 0;
-bool lastfix = 0;
 void loop() {
-  // backlit control
-  //TODO
+#ifdef ENABLE_SS
+  if (state == 3){
+    state = 0;
+    screenshot();
+  }
+#endif
+
+  // backlit toggle
+  if (state == 2){
+    state = 0;
+    if (digitalRead(TFT_BL))
+      digitalWrite(TFT_BL, LOW);
+    else digitalWrite(TFT_BL, HIGH);
+  }
   
-  // update GPS status on screen
-  if (!GPS.fix and lastfix == 1){  
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_PURPLE, TFT_BLACK);
-    tft.drawString("GPS: NO FIX", 4, 28);
-    Serial.println("NO FIX");
-    lastfix = 0;
-  }
-  else if (GPS.fix and lastfix == 0) {
-    tft.setTextSize(1);
-    tft.setTextColor(TFT_GREEN, TFT_BLACK);
-    Serial.println("OK");
-    tft.drawString("GPS: OK", 4, 28);
-    lastfix = 1;
-  }
+  gps_update_screen();
 
   // if in recording mode
   if (record == 1) {
@@ -140,12 +132,10 @@ void loop() {
       tft.setTextSize(2);
       record = 0;
       file.close();
-      disp("Logging", TFT_WHITE, 4, tft.height() / 2, 0);
-      disp("Paused", TFT_WHITE, 4, tft.height() / 2 + 24, 1);
+      disp(F("Logging"), TXT_NEUTRAL, 4, tft.height() / 2, 0);
+      disp(F("Paused"), TXT_NEUTRAL, 4, tft.height() / 2 + 24, 1);
       buttonmarkers(record);
-      tft.fillRect(146, 2, 15, 15, TFT_BLACK);
-      tft.setTextColor(TFT_BLACK, TFT_BLACK);
-      tft.drawString(".", dx, dy);
+      tft.fillRect(146, 2, 15, 15, TXT_BACKGROUND);
     }
   }
   
@@ -155,14 +145,13 @@ void loop() {
     tft.setTextSize(2);
     record = 1;
     file = new_file_open();          // get filenum
-    String dsp = "Logging";
-    disp(dsp, TFT_GREEN, 4, tft.height() / 2, 0);
-#ifndef LOG_SERIAL_ONLY
-    dsp = "-> " + String(filenum) + ".txt";
+    disp(F("Logging"), TXT_POSITIVE, 4, tft.height() / 2, 0);
+#ifdef LOG_SERIAL_ONLY
+    disp(F("to Serial"), TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
 #else
-    dsp = "to Serial";
+    dsp = "-> " + String(filenum) + ".txt";
+    disp(disp, TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
 #endif
-    disp(dsp, TFT_GREEN, 4, tft.height() / 2 + 24, 1);
     buttonmarkers(record);
     timer_stamp = millis();
   }
