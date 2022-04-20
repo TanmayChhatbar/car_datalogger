@@ -1,6 +1,8 @@
 # Car Datalogger
 The device logs IMU and GPS data onto an SD card (or slower, serial)
 
+On an SD card, IMU data is recorded at 350-400Hz, target for GPS is 5Hz, but depends on whether the module has a fix.
+
 The screen offers critical stats on where data is being written, whether GPS has a fix, etc.
 
 # Hardware
