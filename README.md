@@ -26,5 +26,5 @@ data analysis tools
 # TODO
 - check code/src/main.cpp
  
-![](media/datalogger.mp4)
+![](media/datalogger.gif)
 ![](media/photo.png)
