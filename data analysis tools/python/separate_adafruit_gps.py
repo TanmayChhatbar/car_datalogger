@@ -1,4 +1,3 @@
-# separate imu and gps data
 import os
 import sys
 
@@ -11,10 +10,10 @@ def analyse(data_loc, filename):
     file_split = os.path.splitext(filename)
     if file_split[1] == '.txt':
         with open(os.path.join(data_loc, filename), 'r') as f0, \
-        open(os.path.join(data_loc, 'acc', file_split[0]+'_acc'+file_split[1]),'w') as f1, \
-        open(os.path.join(data_loc, 'gps', file_split[0]+'_gps'+file_split[1]),'w') as f2:
-            f1.write('time,ax,ay,az,gx,gy,gz,mx,my,mz\n')
-            f2.write('time,latitude,longitude\n')
+        open(os.path.join(data_loc, 'acc', file_split[0]+'_acc'+file_split[1]),'w') as f_acc, \
+        open(os.path.join(data_loc, 'gps', file_split[0]+'_gps'+file_split[1]),'w') as f_gps:
+            f_acc.write('time,ax,ay,az,gx,gy,gz,mx,my,mz\n')
+            f_gps.write('time,latitude,longitude\n')
 
             for line in f0.readlines():
                 if 'GPS:' in line:
@@ -24,11 +23,11 @@ def analyse(data_loc, filename):
                     lon = lon+line[15:17]+'°'+line[17:24]+'\n'
                     time = prev_line.split(',')[0]+','
                     # print(time)
-                    f2.write(time+lat+lon)
+                    f_gps.write(time+lat+lon)
                 else:
                     try:
                         int(line[0])
-                        f1.write(line)
+                        f_acc.write(line)
                     except:
                         continue
 

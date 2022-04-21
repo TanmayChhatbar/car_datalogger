@@ -2,7 +2,6 @@ from datetime import date
 import os
 import shutil
 
-# import files from SD card to local folder
 def main():
     td = date.today()
 
