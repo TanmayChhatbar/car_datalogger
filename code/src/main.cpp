@@ -12,9 +12,9 @@
 // Helper file settings
 // #define PIN_DUMP         // dump all pins used at setup
 // #define STARTUP_REC      // uncomment to start recording on startup by default
-#define LOG_SERIAL_ONLY  // comment to log to SD
+// #define LOG_SERIAL_ONLY  // comment to log to SD
 // #define LIGHTMODE        // switch to light UI
-#define ENABLE_SS           // top button for screenshot to serial
+// #define ENABLE_SS           // top button for screenshot to serial
 
 // Helper files
 #include "definitions.h"
@@ -32,7 +32,6 @@
   TODO
     animation
       screenshot for the animation
-      textures
       
     SDFat library - file.sync() to preserve recent changes, like flush for sd library - FIGURE OUT HOW TO CHANGE SPI PINS
       https://forum.arduino.cc/t/sdfat-when-to-call-sync/272019
@@ -149,8 +148,7 @@ void loop() {
 #ifdef LOG_SERIAL_ONLY
     disp(F("to Serial"), TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
 #else
-    dsp = "-> " + String(filenum) + ".txt";
-    disp(disp, TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
+    disp("-> " + String(filenum) + ".txt", TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
 #endif
     buttonmarkers(record);
     timer_stamp = millis();
