@@ -5,6 +5,9 @@ On an SD card, IMU data is recorded at 350-400Hz, target for GPS is 5Hz, but dep
 
 The screen offers critical stats on where data is being written, whether GPS has a fix, etc.
 
+![](media/datalogger.gif)
+![](media/photo.png)
+
 # Hardware
 - TTGO TS V1.4 1.8in, with built-in MPU9250 IMU and buzzer
 - Adafruit Ultimate GPS
@@ -22,6 +25,7 @@ code
 data analysis tools
 - The logs for GPS and IMU are combined into one file. You can use the included python script to separate the data.
 - You can use the MATLAB tools to plot the trajectory on a map, or visualize the IMU data as needed.
+
 
 # TOCHECK
 - file.flush() - fix potential data loss if power cut, effects on write speed
@@ -56,7 +60,3 @@ data analysis tools
   - https://www.youtube.com/watch?v=hJG08iWlres
   - https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
   - https://www.mathworks.com/help/fusion/ref/insfilterasync.html
-
- 
-![](media/datalogger.gif)
-![](media/photo.png)
