@@ -26,42 +26,6 @@
 #include "fcn_buttons.h"
 // #include "fcn_wifi.h"
 
-/*
-  TOCHECK
-  file.flush() - fix potential data loss if power cut, effects on write speed
-
-  TODO
-    animation
-      screenshot for the animation
-      
-    SDFat library - file.sync() to preserve recent changes, like flush for sd library - FIGURE OUT HOW TO CHANGE SPI PINS
-      https://forum.arduino.cc/t/sdfat-when-to-call-sync/272019
-      https://forum.arduino.cc/t/explanation-of-sd-write-and-flush-please/369320/5
-    
-    make imu and GPS sensing interrupt based
-    
-    rtOS
-      standardise refresh rate
-
-    GPS - https://airu.coe.utah.edu/wp-content/uploads/sites/62/2017/09/adafruit-ultimate-gps.pdf
-      connection stats on screen
-      battery advantages
-    
-    IMU
-      max refresh rate
-
-    Design
-      soft edges
-    
-    WiFi
-      autobackup
-
-  data processing
-  https://www.youtube.com/watch?v=hJG08iWlres
-  https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
-  https://www.mathworks.com/help/fusion/ref/insfilterasync.html
-*/
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

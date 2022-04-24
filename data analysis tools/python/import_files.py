@@ -6,7 +6,8 @@ def main():
     td = date.today()
 
     folder_name = f"{str(td.month).zfill(2)}-{str(td.day).zfill(2)}-{str(td.year)[2:4].zfill(2)}"
-    data_loc = '../test_rig_imu_data'
+    # data_loc = '../test_rig_imu_data'
+    data_loc = 'T:\Documents\Projects\Arduino\data_logger\data'
     folder = os.path.join(data_loc,folder_name)
     if not os.path.isdir(folder):
         os.mkdir(folder)

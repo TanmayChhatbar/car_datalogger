@@ -23,8 +23,40 @@ data analysis tools
 - The logs for GPS and IMU are combined into one file. You can use the included python script to separate the data.
 - You can use the MATLAB tools to plot the trajectory on a map, or visualize the IMU data as needed.
 
+# TOCHECK
+- file.flush() - fix potential data loss if power cut, effects on write speed
+
 # TODO
-- check code/src/main.cpp
+- animation
+  - screenshot for the animation
+      
+- SDFat library - file.sync() to preserve recent changes, like flush for sd library - FIGURE OUT HOW TO CHANGE SPI PINS
+  - https://forum.arduino.cc/t/sdfat-when-to-call-sync/272019
+  - https://forum.arduino.cc/t/explanation-of-sd-write-and-flush-please/369320/5
+    
+- make imu and GPS sensing interrupt based
+    
+- rtOS
+  - standardise refresh rate
+
+- GPS - https://airu.coe.utah.edu/wp-content/uploads/sites/62/2017/09/adafruit-ultimate-gps.pdf
+  - connection stats on screen
+  - battery advantages
+    
+- IMU
+  - max refresh rate
+
+- Design
+  - soft edges
+    
+- WiFi
+  - autobackup
+ 
+- data processing
+  - https://www.youtube.com/watch?v=hJG08iWlres
+  - https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
+  - https://www.mathworks.com/help/fusion/ref/insfilterasync.html
+
  
 ![](media/datalogger.gif)
 ![](media/photo.png)
