@@ -117,12 +117,14 @@ void buttonmarkers(bool record) {
 void gps_update_screen() {
     // update GPS status on screen
   if (!GPS.fix and lastfix == 1){  
-    disp("GPS: NO FIX", TXT_NEUTRAL, 4, 28, 1);
     Serial.println("NO FIX");
+    tft.setTextSize(1);
+    disp("GPS: NO FIX", TXT_NEUTRAL, 4, 28, 1);
     lastfix = 0;
   }
   else if (GPS.fix and lastfix == 0) {
     Serial.println("OK");
+    tft.setTextSize(1);
     disp("GPS: OK", TXT_POSITIVE, 4, 28, 1);
     lastfix = 1;
   }

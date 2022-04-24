@@ -24,6 +24,7 @@
 #include "fcn_gps.h"
 #include "fcn_SD.h"
 #include "fcn_buttons.h"
+// #include "fcn_wifi.h"
 
 /*
   TOCHECK
@@ -66,6 +67,15 @@
 
 void setup() {
   const String vs = "v2.8";
+  Serial.println(vs);
+  button_init();
+  btnscanT.attach_ms(30, button_loop);
+#ifdef STARTUP_REC
+  record = 0;
+#else
+  record = 1;
+#endif
+  state = 1;
   
   Serial.begin(115200);
   delay(50);
@@ -76,21 +86,16 @@ void setup() {
   disp(vs, TXT_SECONDARY, 134, 119, 1);
   spisd_test();                   // check if sd card connected and working
   buzzer_test();                  // buzzer test, but doesnt do anything
-  button_init();
 
   imu_connect();
 
   gps_test();
-  btnscanT.attach_ms(30, button_loop);
-
-#ifdef STARTUP_REC
-  record = 0;
-#else
-  record = 1;
-#endif
-  state = 1;
 
   buttonmarkers(record);
+
+  // if (state == 3){
+  //   backuptowifi();
+  // }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,11 +133,12 @@ void loop() {
     // if need to stop recording
     if (state == 1) {
       state = 0;
-      tft.setTextSize(2);
       record = 0;
       file.close();
-      disp(F("Logging"), TXT_NEUTRAL, 4, tft.height() / 2, 0);
-      disp(F("Paused"), TXT_NEUTRAL, 4, tft.height() / 2 + 24, 1);
+      tft.setTextSize(2);
+      disp("Logging", TXT_NEUTRAL, 4, tft.height() / 2, 0);
+      disp("Paused", TXT_NEUTRAL, 4, tft.height() / 2 + 24, 1);
+      tft.setTextSize(1);
       buttonmarkers(record);
       tft.fillRect(146, 2, 15, 15, TXT_BACKGROUND);
     }
@@ -141,15 +147,16 @@ void loop() {
   // if not recording, but need to start recording
   else if (state == 1) {
     state = 0;
-    tft.setTextSize(2);
     record = 1;
     file = new_file_open();          // get filenum
-    disp(F("Logging"), TXT_POSITIVE, 4, tft.height() / 2, 0);
+    tft.setTextSize(2);
+    disp("Logging", TXT_POSITIVE, 4, tft.height() / 2, 0);
 #ifdef LOG_SERIAL_ONLY
-    disp(F("to Serial"), TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
+    disp("to Serial", TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
 #else
     disp("-> " + String(filenum) + ".txt", TXT_POSITIVE, 4, tft.height() / 2 + 24, 1);
 #endif
+    tft.setTextSize(1);
     buttonmarkers(record);
     timer_stamp = millis();
   }
